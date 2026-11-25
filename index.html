@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ACIDOME – Rainwater Acidity Monitoring & Alerts</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#f2f6f3;--panel:#fff;--ink:#17302a;--mute:#4f6b61;--line:#cfdcd4;--leaf:#4f8a1d;--water:#1f7a9c;--warn:#c98a00;--crit:#c43d33;--ok:#2e8b57;--hero:#21372e;--herotxt:#e4efe8}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16241f;--panel:#21372e;--ink:#e4efe8;--mute:#a9c2b6;--line:#34524500;--line:#3a584a;--leaf:#8dc63f;--water:#5cc0e2;--warn:#f2c230;--crit:#ff6b5e;--ok:#5fd08e;--hero:#0f1c17}}
+:root[data-theme="dark"]{--bg:#16241f;--panel:#21372e;--ink:#e4efe8;--mute:#a9c2b6;--line:#3a584a;--leaf:#8dc63f;--water:#5cc0e2;--warn:#f2c230;--crit:#ff6b5e;--ok:#5fd08e;--hero:#0f1c17}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:70px;height:auto}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.6 Montserrat,system-ui,Segoe UI,Arial,sans-serif}
+h1,h2,h3{line-height:1.15;margin:0}
+a{color:var(--water)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--hero);color:var(--herotxt)}
+nav .wrap{display:flex;align-items:center;gap:18px;height:56px;overflow-x:auto;white-space:nowrap}
+nav b{font-weight:800;letter-spacing:.04em;margin-right:auto}
+nav a{color:var(--herotxt);text-decoration:none;font-size:14px;opacity:.85}
+nav a:hover{opacity:1}
+nav button{background:none;border:1px solid #ffffff55;color:var(--herotxt);border-radius:8px;padding:4px 10px;cursor:pointer;font:inherit;font-size:13px}
+header{background:var(--hero);color:var(--herotxt);padding:48px 0 56px}
+.hgrid{display:grid;grid-template-columns:1fr 1fr;gap:36px;align-items:center}
+header h1{font-size:clamp(34px,6vw,60px);font-weight:800;letter-spacing:.02em}
+header p{font-size:18px;max-width:46ch;color:#c4d9cd}
+.tag{color:#8dc63f;font-weight:600}
+.btn{display:inline-block;background:#8dc63f;color:#14260f;font-weight:600;border:0;border-radius:10px;padding:11px 20px;text-decoration:none;cursor:pointer;font:inherit;font-weight:600}
+.btn.alt{background:transparent;color:var(--herotxt);border:1px solid #ffffff66;margin-left:8px}
+section{padding:60px 0}
+section h2{font-size:clamp(26px,4vw,36px);margin-bottom:10px}
+.lead{color:var(--mute);max-width:68ch;margin:0 0 28px}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}.g5{grid-template-columns:repeat(5,1fr)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+.card h3{font-size:17px;margin-bottom:8px;color:var(--leaf)}
+.card ul{margin:0;padding-left:18px;color:var(--mute);font-size:15px}
+.flow{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
+.flow .card{flex:1 1 150px;position:relative;font-size:14px}
+.flow .card b{display:block;color:var(--leaf);margin-bottom:4px}
+.demo{background:var(--hero);color:var(--herotxt);border-radius:18px;padding:24px;display:grid;grid-template-columns:1.1fr 1fr;gap:24px}
+.demo h3{color:#8dc63f}
+.gauge{text-align:center}
+.big{font-size:56px;font-weight:800;line-height:1}
+.sub{color:#a9c2b6;font-size:14px}
+.status{display:inline-block;margin-top:10px;padding:6px 14px;border-radius:999px;font-weight:600;font-size:14px;color:#10200f;background:#5fd08e}
+.status.warn{background:#f2c230}.status.crit{background:#ff6b5e}
+label{display:block;font-size:14px;margin:14px 0 4px;color:#c4d9cd}
+input[type=range]{width:100%;accent-color:#8dc63f}
+.leds{display:flex;gap:10px;margin:14px 0}
+.led{width:22px;height:22px;border-radius:50%;background:#ffffff18;border:2px solid #ffffff30;transition:.2s}
+.led.on.g{background:#5fd08e;box-shadow:0 0 14px #5fd08e}.led.on.y{background:#f2c230;box-shadow:0 0 14px #f2c230}.led.on.r{background:#ff6b5e;box-shadow:0 0 14px #ff6b5e}
+#banner{padding:10px 14px;border-radius:10px;font-weight:600;color:#10200f;background:#f2c230;margin:14px 0 0}#banner.crit{background:#ff6b5e;animation:blink 1s steps(2) infinite}@keyframes blink{50%{opacity:.65}}@media (prefers-reduced-motion:reduce){#banner{animation:none!important}}
+.logic{font-family:ui-monospace,Menlo,monospace;font-size:13px;background:#00000030;border-radius:10px;padding:10px 12px;margin-top:10px}
+.log{max-height:150px;overflow:auto;font-size:13px;margin-top:10px;padding:0;list-style:none}
+.log li{padding:4px 0;border-bottom:1px solid #ffffff18}
+svg text{fill:currentColor}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.tabs button{border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:999px;padding:7px 16px;cursor:pointer;font:inherit;font-size:14px}
+.tabs button[aria-selected=true]{background:var(--leaf);color:#10200f;border-color:var(--leaf);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:15px}
+td,th{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left}
+td:last-child,th:last-child{text-align:right;white-space:nowrap}
+tfoot td{font-weight:800;font-size:17px;border-bottom:0}
+.scroll{overflow-x:auto}
+.team{display:flex;flex-wrap:wrap;gap:12px}
+.person{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;gap:12px;align-items:center;flex:1 1 230px}
+.av{width:42px;height:42px;border-radius:50%;background:var(--leaf);color:#10200f;display:grid;place-items:center;font-weight:800;flex:none}
+.person small{display:block;color:var(--mute)}
+footer{background:var(--hero);color:#a9c2b6;padding:32px 0 40px;font-size:14px}
+:focus-visible{outline:3px solid #8dc63f;outline-offset:2px}
+@media (max-width:820px){.hgrid,.demo,.g2,.g3{grid-template-columns:1fr}.g4,.g5{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:480px){.g4,.g5{grid-template-columns:1fr}.big{font-size:44px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<nav><div class="wrap"><b>💧 ACIDOME</b><a href="#demo">Live demo</a><a href="#problem">Problem</a><a href="#how">How it works</a><a href="#science">Science</a><a href="#bom">Budget</a><a href="#team">Team</a><button id="theme" aria-label="Toggle theme">Theme</button></div></nav>
+
+<header><div class="wrap hgrid">
+<div>
+<p class="tag">Team 2 · NIIT University</p>
+<h1>ACIDOME</h1>
+<p>Turning rainwater data into timely public awareness. A low-cost sensor unit measures rain pH and conductivity, checks the readings, and alerts farmers and industries.</p>
+<p><a class="btn" href="#demo">Try the live demo</a></p>
+</div>
+<svg viewBox="0 0 320 300" role="img" aria-label="Water drop with a sprout and pulse line" style="width:100%;max-width:360px;margin:auto;display:block">
+<path d="M70 250 A90 90 0 0 1 250 250" fill="none" stroke="#c9ded3" stroke-width="10" stroke-linecap="round"/>
+<path d="M160 90 C110 160 100 200 160 232 C220 200 210 160 160 90Z" fill="#2f8fb3"/>
+<path d="M120 190 h28 l8 -22 14 40 10 -18 h22" fill="none" stroke="#fff" stroke-width="4"/>
+<path d="M160 100 C150 60 120 40 100 40 C100 70 125 95 160 100Z" fill="#8dc63f"/>
+<path d="M160 100 C165 60 195 30 225 30 C225 65 195 95 160 100Z" fill="#a4d65e"/>
+<ellipse cx="160" cy="250" rx="80" ry="10" fill="none" stroke="#5cc0e2" stroke-width="4"/>
+<path d="M240 70q22-18 44 0M250 82q12-10 24 0" fill="none" stroke="#c9ded3" stroke-width="5" stroke-linecap="round"/>
+</svg>
+</div></header>
+
+<section id="demo"><div class="wrap">
+<h2>Live monitoring demo</h2>
+<p class="lead">This simulates the prototype. Move the sliders or start a rain event. Alerts use the same logic as the hardware: A = pH below 5.6, B = high conductivity. Warning = A OR B, Critical = A AND B.</p>
+<div class="demo">
+<div class="gauge">
+<h3>Current rainwater pH</h3>
+<svg viewBox="0 0 300 175" style="width:100%;max-width:380px" aria-hidden="true">
+<defs><linearGradient id="gr"><stop offset="0" stop-color="#ff6b5e"/><stop offset=".35" stop-color="#f2c230"/><stop offset=".5" stop-color="#5fd08e"/><stop offset="1" stop-color="#4a90e2"/></linearGradient></defs>
+<path d="M30 150 A120 120 0 0 1 270 150" fill="none" stroke="url(#gr)" stroke-width="18" stroke-linecap="round"/>
+<g id="needle" style="transform-origin:150px 150px;transition:transform .5s"><line x1="150" y1="150" x2="150" y2="48" stroke="currentColor" stroke-width="4" stroke-linecap="round"/><circle cx="150" cy="150" r="8" fill="currentColor"/></g>
+<text x="30" y="172" font-size="12">0</text><text x="262" y="172" font-size="12">14</text>
+</svg>
+<div class="big"><span id="phv">6.15</span></div>
+<div class="sub">pH · clean rain is about 5.6</div>
+<div class="status" id="status">Normal</div>
+<p id="advice" class="sub" style="max-width:40ch;margin:10px auto 0"></p>
+</div>
+<div>
+<h3>Sensor inputs</h3>
+<label for="ph">pH: <b id="phl">6.15</b></label><input id="ph" type="range" min="2" max="9" step="0.05" value="6.15">
+<label for="ec">Conductivity: <b id="ecl">120</b> µS/cm</label><input id="ec" type="range" min="10" max="1500" step="10" value="120">
+<div class="leds" aria-hidden="true"><span class="led g on" id="lg"></span><span class="led y" id="ly"></span><span class="led r" id="lr"></span></div>
+<div class="logic" id="logic"></div>
+<div id="banner" role="alert" hidden></div>
+<p><button class="btn" id="sim">Start rain event</button> <button class="btn" id="rst" style="background:#ffffff20;color:#e4efe8">Reset</button> <button class="btn" id="snd" style="background:#ffffff20;color:#e4efe8" aria-pressed="true">Buzzer: On</button> <button class="btn" id="tst" style="background:#ffffff20;color:#e4efe8">Test buzzer</button></p>
+<h3 style="margin-top:14px">Trend and alert log</h3>
+<svg viewBox="0 0 300 70" style="width:100%" aria-label="pH trend"><line x1="0" x2="300" y1="35" y2="35" stroke="#ffffff30" stroke-dasharray="4"/><polyline id="trend" fill="none" stroke="#5cc0e2" stroke-width="2.5"/></svg>
+<ul class="log" id="log"></ul>
+</div>
+</div>
+</div></section>
+
+<section id="problem" style="background:var(--panel)"><div class="wrap">
+<h2>The problem</h2>
+<p class="lead">Acidic rainwater can affect crops, aquatic ecosystems, water resources and infrastructure. Manual testing and delayed communication mean people often get warnings too late.</p>
+<div class="grid g2">
+<div class="card"><h3>Existing methods</h3><ul><li><b>Manual pH testing:</b> strips or meters.</li><li><b>Laboratory analysis:</b> detailed, but needs sample collection and processing.</li><li><b>Digital monitoring:</b> sensors for selected parameters.</li></ul></div>
+<div class="card"><h3>Research gap</h3><ul><li>Delayed manual testing</li><li>Limited instant communication</li><li>Lack of accessible user alerts</li><li>Need for location-based monitoring</li></ul></div>
+</div></div></section>
+
+<section id="how"><div class="wrap">
+<h2>How ACIDOME works</h2>
+<p class="lead">Sensor readings, digital analysis, location-based alerts, user dashboard.</p>
+<div class="flow">
+<div class="card"><b>Input</b>Rainwater collection and sensor readings.</div>
+<div class="card"><b>Processing</b>ESP32 receives and processes sensor data.</div>
+<div class="card"><b>Analysis</b>Evaluates readings and flags unusual patterns.</div>
+<div class="card"><b>Communication</b>Sends data to the database and notification service.</div>
+<div class="card"><b>User interface</b>Dashboard shows readings, history and alerts.</div>
+</div>
+<div class="grid g2" style="margin-top:16px">
+<div class="card"><h3>Farmers</h3><ul><li>Irrigation water monitoring</li><li>pH and conductivity readings</li><li>Instant mobile alerts</li><li>Simple usage guidance</li></ul></div>
+<div class="card"><h3>Industries</h3><ul><li>Rainwater monitoring</li><li>Water-quality trends</li><li>Abnormal reading alerts</li><li>Digital records</li></ul></div>
+</div></div></section>
+
+<section id="science" style="background:var(--panel)"><div class="wrap">
+<h2>The science behind it</h2>
+<p class="lead">Five subjects come together in one system.</p>
+<div class="tabs" role="tablist" id="tabs"></div>
+<div class="card" id="tabbody" role="tabpanel" aria-live="polite"></div>
+</div></section>
+
+<section id="bom"><div class="wrap">
+<h2>Bill of materials</h2>
+<p class="lead">The prototype is built from low-cost parts. The pH sensor price was left blank in the source slides, so it is shown as a placeholder and the total uses the figure from the slides.</p>
+<div class="card scroll"><table>
+<thead><tr><th>Component</th><th>Purpose</th><th>Cost</th></tr></thead><tbody>
+<tr><td>ESP32 microcontroller</td><td>Processes sensor data, Wi-Fi communication</td><td>₹450</td></tr>
+<tr><td>pH sensor</td><td>Measures acidity of rainwater</td><td>To be confirmed</td></tr>
+<tr><td>Conductivity sensor</td><td>Measures dissolved ionic content</td><td>₹450</td></tr>
+<tr><td>Display module</td><td>Shows sensor readings</td><td>₹200</td></tr>
+<tr><td>Breadboard and jumper wires</td><td>Connects components</td><td>₹150</td></tr>
+<tr><td>Funnel and collection chamber</td><td>Collects and holds rainwater samples</td><td>₹150</td></tr>
+<tr><td>Enclosure and PVC fittings</td><td>Protects and supports the prototype</td><td>₹400</td></tr>
+<tr><td>Power supply and miscellaneous</td><td>Power and connections</td><td>₹350</td></tr>
+</tbody><tfoot><tr><td colspan="2">Total estimated cost</td><td>₹3,900</td></tr></tfoot></table></div>
+</div></section>
+
+<section style="background:var(--panel)"><div class="wrap">
+<h2>Testing, challenges and limits</h2>
+<div class="grid g3" style="margin-top:20px">
+<div class="card"><h3>Testing</h3><ul><li>pH sensor reading checks</li><li>Conductivity checks</li><li>ESP32 data transmission</li><li>Dashboard and alert verification</li></ul></div>
+<div class="card"><h3>Challenges</h3><ul><li>Sensor calibration</li><li>Changing environmental conditions</li><li>Connectivity interruptions</li><li>Maintaining accurate readings</li></ul></div>
+<div class="card"><h3>Limitations</h3><ul><li>Measures only selected parameters</li><li>Cannot identify every pollutant</li><li>Needs regular sensor maintenance</li><li>Lab testing may be needed to confirm</li></ul></div>
+</div>
+<h2 style="margin-top:44px">Future scope</h2>
+<div class="grid g3" style="margin-top:16px">
+<div class="card"><h3>Predictive analysis</h3><ul><li>Identify contamination patterns and potential risks</li></ul></div>
+<div class="card"><h3>Advanced monitoring</h3><ul><li>Integrate additional water-quality sensors</li></ul></div>
+<div class="card"><h3>Wider connectivity</h3><ul><li>Expand to rural areas with multilingual alerts</li></ul></div>
+</div></div></section>
+
+<section id="team"><div class="wrap">
+<h2>Team 2</h2>
+<p class="lead">Eleven students, each with a defined role.</p>
+<div class="team" id="teamlist"></div>
+</div></section>
+
+<footer><div class="wrap">
+<p><b>References:</b> US EPA – What is Acid Rain? · US EPA – Effects of Acid Rain · USGS – pH and Water · USGS – Water Quality · USGS – Properties of Water.</p>
+<p>ACIDOME is a proposed student prototype. Readings in the demo are simulated. Lab testing may be needed to confirm results.</p>
+</div></footer>
+
+<script>
+const $=id=>document.getElementById(id);
+const ph=$('ph'),ec=$('ec');
+const hist=[],ECHIGH=500;
+let timer=null,lastLevel='ok';
+function level(p,e){const A=p<5.6,B=e>ECHIGH;return{A,B,lvl:(A&&B)?'crit':(A||B)?'warn':'ok'}}
+function update(){
+const p=+ph.value,e=+ec.value,{A,B,lvl}=level(p,e);
+$('phv').textContent=p.toFixed(2);$('phl').textContent=p.toFixed(2);$('ecl').textContent=e;
+$('needle').style.transform='rotate('+((p/14)*180-90)+'deg)';
+const st=$('status');st.className='status'+(lvl==='ok'?'':' '+lvl);
+st.textContent={ok:'Normal ambient rainwater',warn:'Warning',crit:'Critical alert'}[lvl];
+$('advice').textContent={ok:'Rainwater is in a safe range for collection and irrigation.',warn:'Abnormal reading. Hold harvested water and check the sensor and nearby sources.',crit:'Acidic and high in dissolved ions. Do not irrigate. Cover ponds and confirm with a lab test.'}[lvl];
+const bn=$('banner');bn.hidden=lvl==='ok';bn.className=lvl==='crit'?'crit':'';bn.textContent=lvl==='crit'?'CRITICAL ALERT: acidic rain with high conductivity. Buzzer sounding.':lvl==='warn'?'WARNING: abnormal rainwater reading detected.':'';
+$('lg').className='led g'+(lvl==='ok'?' on':'');$('ly').className='led y'+(lvl==='warn'?' on':'');$('lr').className='led r'+(lvl==='crit'?' on':'');
+$('logic').innerHTML='A (pH &lt; 5.6) = '+(+A)+' &nbsp; B (EC high) = '+(+B)+'<br>Warning = A + B = '+(+(A||B))+' &nbsp; Critical = A · B = '+(+(A&&B));
+hist.push(p);if(hist.length>40)hist.shift();
+$('trend').setAttribute('points',hist.map((v,i)=>(i*300/39).toFixed(1)+','+(70-((v-2)/7)*66).toFixed(1)).join(' '));
+if(lvl!==lastLevel){if(lvl==='ok'){clearInterval(alarmT);alarmT=null}else buzz(lvl);const li=document.createElement('li');const t=new Date().toLocaleTimeString();
+li.textContent=t+' – '+{ok:'Back to normal',warn:'Warning: pH '+p.toFixed(2)+', EC '+e,crit:'Critical: pH '+p.toFixed(2)+', EC '+e}[lvl];
+$('log').prepend(li);lastLevel=lvl}
+}
+let snd=true,ac=null,alarmT=null;
+function beep(f,d,t){if(!snd)return;try{ac=ac||new(window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain(),s=ac.currentTime+t;o.type='square';o.frequency.value=f;g.gain.setValueAtTime(.0001,s);g.gain.exponentialRampToValueAtTime(.12,s+.01);g.gain.exponentialRampToValueAtTime(.0001,s+d);o.connect(g);g.connect(ac.destination);o.start(s);o.stop(s+d+.02)}catch(e){}}
+function buzz(l){clearInterval(alarmT);alarmT=null;const p=()=>{if(l==='warn'){beep(660,.3,0)}else{beep(990,.15,0);beep(990,.15,.25);beep(990,.15,.5)}};p();if(l==='crit')alarmT=setInterval(p,1500)}
+$('snd').onclick=()=>{snd=!snd;$('snd').textContent='Buzzer: '+(snd?'On':'Off');$('snd').setAttribute('aria-pressed',snd)};
+$('tst').onclick=()=>{const o=snd;snd=true;beep(880,.2,0);beep(880,.2,.3);snd=o};
+[ph,ec].forEach(x=>x.addEventListener('input',update));
+$('sim').onclick=()=>{
+if(timer){clearInterval(timer);timer=null;$('sim').textContent='Start rain event';return}
+$('sim').textContent='Stop rain event';
+let tp=4.6+Math.random()*0.8,te=300+Math.random()*700;
+timer=setInterval(()=>{
+if(Math.random()<.1){tp=3.8+Math.random()*3.2;te=60+Math.random()*1200}
+ph.value=(+ph.value+(tp-ph.value)*.25+(Math.random()-.5)*.1).toFixed(2);
+ec.value=Math.round(+ec.value+(te-ec.value)*.25);update()},900)};
+$('rst').onclick=()=>{if(timer){clearInterval(timer);timer=null;$('sim').textContent='Start rain event'}ph.value=6.15;ec.value=120;hist.length=0;update()};
+update();
+
+const sci={
+Chemistry:['pH and acidity: pH measures hydrogen ion level. Clean rain sits near 5.6 because CO₂ + H₂O ⇌ H₂CO₃. Below 5.6 counts as acid rain.','Acid rain formation: SO₂ + H₂O → H₂SO₃ → H₂SO₄, and NO₂ + H₂O → HNO₃ + HNO₂.','Conductivity: dissolved ions such as SO₄²⁻ and NO₃⁻ raise conductivity. Calibrate with pH 4, 7 and 10 buffers and dispose of used buffer safely.'],
+Physics:['Quantum physics: photon energy, band gap, energy levels, tunnelling.','Semiconductors: LED, photodiode, ISFET and gas sensors, solar cell.','Optics: absorption, scattering, Beer-Lambert law. Dielectrics: capacitance, polarisation, piezoelectricity, high-K gate layer. Lasers are a future upgrade.','Overall chain: rain property → physical effect → electrical signal.'],
+Electronics:['Electric circuits: voltage, current, resistance, connections and power supply.','Semiconductors: the base of diodes, transistors and microcontrollers.','Signals: analog and digital signals, electronic data processing. The ESP32 collects readings and sends them to the monitoring platform over Wi-Fi.'],
+'Digital logic':['Truth tables list input combinations and their outputs.','Boolean algebra uses binary values 0 and 1 with AND, OR and NOT gates.','ACIDOME rule: A = pH below 5.6, B = high conductivity. Warning = A OR B. Critical = A AND B. Try it in the live demo above.'],
+Management:['Marketing: identify users and promote ACIDOME through digital platforms and demonstrations.','Operations: plan procurement, assembly and testing.','Financial: estimate prototype and component costs, plan maintenance.','Human resource: allocate responsibilities and coordinate progress.']};
+const tabs=$('tabs');Object.keys(sci).forEach((k,i)=>{const b=document.createElement('button');b.textContent=k;b.setAttribute('role','tab');b.onclick=()=>show(k);tabs.appendChild(b)});
+function show(k){[...tabs.children].forEach(b=>b.setAttribute('aria-selected',b.textContent===k));
+$('tabbody').innerHTML='<h3>'+k+'</h3><ul>'+sci[k].map(s=>'<li>'+s+'</li>').join('')+'</ul>'}
+show('Chemistry');
+
+[['Atharva','Project Manager'],['Navya','Primary researcher'],['Akshay Sharma','Cost manager'],['Shivam Kumar','Critical thinker'],['Anushka Gupta','Secondary researcher'],['Garimaa','Marketing Manager'],['Rajit Wadhawan','Learning Lead'],['Rohit Sharma','Product manager'],['Kushagra Sharma','Industry Collaborator'],['Keshav Bhardwaj','Employability Definer'],['Rishika','Interdisciplinary head']]
+.forEach(([n,r])=>{const d=document.createElement('div');d.className='person';d.innerHTML='<span class="av">'+n[0]+'</span><span>'+n+'<small>'+r+'</small></span>';$('teamlist').appendChild(d)});
+
+$('theme').onclick=()=>{const r=document.documentElement;const dark=getComputedStyle(r).getPropertyValue('--bg').trim()==='#16241f';r.setAttribute('data-theme',dark?'light':'dark')};
+</script>
+</body>
+</html>
